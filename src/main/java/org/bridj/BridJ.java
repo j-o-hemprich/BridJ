@@ -325,16 +325,25 @@ public class BridJ {
     public static BridJRuntime getRuntime(Class<?> type) {
         synchronized (classRuntimes) {
             BridJRuntime runtime = classRuntimes.get(type);
-            if (runtime == null) {
-                Class<? extends BridJRuntime> runtimeClass = getRuntimeClass(type);
-                runtime = getRuntimeByRuntimeClass(runtimeClass);
-                classRuntimes.put(type, runtime);
-
-                if (veryVerbose) {
-                    info("Runtime for " + type.getName() + " : " + runtimeClass.getName());
-                }
+            if (runtime != null) {
+                return runtime;
             }
-            return runtime;
+        }
+
+        synchronized (BridJ.class) {
+            synchronized (classRuntimes) {
+                BridJRuntime runtime = classRuntimes.get(type);
+                if (runtime == null) {
+                    Class<? extends BridJRuntime> runtimeClass = getRuntimeClass(type);
+                    runtime = getRuntimeByRuntimeClass(runtimeClass);
+                    classRuntimes.put(type, runtime);
+
+                    if (veryVerbose) {
+                        info("Runtime for " + type.getName() + " : " + runtimeClass.getName());
+                    }
+                }
+                return runtime;
+            }
         }
     }
 
@@ -377,13 +386,23 @@ public class BridJ {
     static <T extends NativeObject> TypeInfo<T> getTypeInfo(BridJRuntime runtime, Type t) {
         synchronized (typeInfos) {
             @SuppressWarnings("unchecked")
-            TypeInfo<T> info = (TypeInfo<T>)typeInfos.get(t);
-            if (info == null) {
-                // getRuntime(Utils.getClass(t))
-                info = runtime.getTypeInfo(t);
-                typeInfos.put(t, info);
+            TypeInfo<T> info = (TypeInfo<T>) typeInfos.get(t);
+            if (info != null) {
+                return info;
             }
-            return info;
+        }
+
+        synchronized (BridJ.class) {
+            synchronized (typeInfos) {
+                @SuppressWarnings("unchecked")
+                TypeInfo<T> info = (TypeInfo<T>) typeInfos.get(t);
+                if (info == null) {
+                    // getRuntime(Utils.getClass(t))
+                    info = runtime.getTypeInfo(t);
+                    typeInfos.put(t, info);
+                }
+                return info;
+            }
         }
     }
 
@@ -845,16 +864,28 @@ public class BridJ {
             return null;
         }
 
-        try {
-            synchronized (nativeLibraryFiles) {
-                File nativeLibraryFile = nativeLibraryFiles.get(libraryName);
+        synchronized (nativeLibraryFiles) {
+            File nativeLibraryFile = nativeLibraryFiles.get(libraryName);
+            if (nativeLibraryFile != null) {
                 if (debug) {
                   info("Library named '" + libraryName + "' is associated to file '" + nativeLibraryFiles + "'", null);
                 }
-                if (nativeLibraryFile == null) {
-                    nativeLibraryFiles.put(libraryName, nativeLibraryFile = findNativeLibraryFile(libraryName));
-                }
                 return nativeLibraryFile;
+            }
+        }
+
+        try {
+            synchronized (BridJ.class) {
+                synchronized (nativeLibraryFiles) {
+                    File nativeLibraryFile = nativeLibraryFiles.get(libraryName);
+                    if (nativeLibraryFile == null) {
+                        nativeLibraryFiles.put(libraryName, nativeLibraryFile = findNativeLibraryFile(libraryName));
+                    }
+                    if (debug) {
+                        info("Library named '" + libraryName + "' is associated to file '" + nativeLibraryFile + "'", null);
+                    }
+                    return nativeLibraryFile;
+                }
             }
         } catch (Throwable th) {
             warning("Library not found : " + libraryName, debug ? th : null);
