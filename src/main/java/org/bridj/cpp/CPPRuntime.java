@@ -294,7 +294,7 @@ public class CPPRuntime extends CRuntime {
 
     protected static class VirtMeth {
 
-        Method implementation, definition;
+        public Method implementation, definition;
     }
 
     protected void listVirtualMethods(Class<?> type, List<VirtMeth> out) {
@@ -334,9 +334,13 @@ public class CPPRuntime extends CRuntime {
 
             Virtual virtual = method.getAnnotation(Virtual.class);
             if (virtual != null) {
-                VirtMeth vm = new VirtMeth();
-                vm.definition = vm.implementation = method;
-                newVirtuals.put(virtual.value(), vm);
+				boolean add = !newVirtuals.containsKey(virtual.value());
+				boolean replace = !Modifier.isNative(method.getModifiers());
+				if (add || replace) {
+					VirtMeth vm = new VirtMeth();
+					vm.definition = vm.implementation = method;
+					newVirtuals.put(virtual.value(), vm);
+				}
             }
         }
         out.addAll(newVirtuals.values());
@@ -618,10 +622,10 @@ public class CPPRuntime extends CRuntime {
         }
     }
 
-    static class VTable {
+    protected static class VTable {
 
-        Pointer<Pointer<?>> ptr;
-        Map<Method, Pointer<?>> callbacks = new HashMap<Method, Pointer<?>>();
+        public Pointer<Pointer<?>> ptr;
+        public Map<Method, Pointer<?>> callbacks = new HashMap<Method, Pointer<?>>();
     }
 
     @SuppressWarnings("rawtypes")
