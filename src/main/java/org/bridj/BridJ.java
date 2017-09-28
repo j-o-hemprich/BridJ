@@ -531,7 +531,8 @@ public class BridJ {
     public static final boolean enableDestructors = Switch.Destructors.enabled;
     public static final boolean alignDoubles = Switch.AlignDouble.enabled;
     public static final boolean cachePointers = Switch.CachePointers.enabled;
-    static volatile int minLogLevelValue = (verbose ? Level.WARNING : Level.INFO).intValue();
+    
+    static volatile int minLogLevelValue = (verbose ? Level.INFO : Level.WARNING).intValue();
 
     public static void setMinLogLevel(Level level) {
         minLogLevelValue = level.intValue();
@@ -569,7 +570,7 @@ public class BridJ {
     }
 
     public static boolean error(String message, Throwable ex) {
-        return log(Level.INFO, message, ex);
+        return log(Level.SEVERE, message, ex);
     }
 
     public static boolean warning(String message) {
@@ -577,7 +578,7 @@ public class BridJ {
     }
 
     public static boolean warning(String message, Throwable ex) {
-        return log(Level.INFO, message, ex);
+        return log(Level.WARNING, message, ex);
     }
 
     private static boolean log(Level level, String message, Throwable ex) {
@@ -1092,7 +1093,7 @@ public class BridJ {
      * call to {@link #getNativeLibrary(String)} will return this library.
      */
     public static NativeLibrary getNativeLibrary(String name, File f) throws IOException {
-        NativeLibrary ll = NativeLibrary.load(f == null ? name : f.toString());;
+        NativeLibrary ll = NativeLibrary.load(f == null ? name : f.toString());
         if (ll == null) {
             ll = PlatformSupport.getInstance().loadNativeLibrary(name);
             if (ll == null) {
