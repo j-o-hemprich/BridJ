@@ -29,6 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.bridj;
+import org.bridj.PointerIO;
+import org.bridj.CommonPointerIOs;
 import org.bridj.util.*;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -1969,7 +1971,11 @@ public abstract class Pointer<T> implements Comparable<Pointer<?>>, Iterable<T>
 		if (address == 0 || size == 0)
 			return null;
 		
-		PointerIO<${prim.WrapperName}> io = CommonPointerIOs.${prim.Name}IO;
+		// Avoid ExcepionInInitializerError when calling pointerToBytes() as the first Bridj-related statement
+		// by fetching the member indirectly via PointerIO accessors
+		//PointerIO<${prim.WrapperName}> io = CommonPointerIOs.${prim.Name}IO;
+		PointerIO<${prim.WrapperName}> io = PointerIO.get${prim.CapName}Instance();
+		
 		boolean ordered = buffer.order().equals(ByteOrder.nativeOrder());
 		return newPointer(io, address, ordered, address, address + size, null, NO_PARENT, null, buffer);
     }
